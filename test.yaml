@@ -1,0 +1,9 @@
+file_name: /home/jade/github/data/data.logfile
+email_to: jadeh@simiya.com
+email_from: noreply@colovore.com
+ignore:
+    - DOT11-4-CCMP_REPLAY
+    - SNMP-3-AUTHFAIL
+    - PARSER-5-CFGLOG_LOGGEDCMD
+    - SYS-5-CONFIG_I
+ip_addr: 127.0.0.1

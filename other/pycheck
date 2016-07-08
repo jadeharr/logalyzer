@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PYTHONPATH="${PYTHONPATH}:`pwd`"
+export PYTHONPATH
+
+# List of error messages to suppress
+# DISABLE_LIST='F0401,W0703,W0702'
+DISABLE_LIST='W0702,W0703'
+
+# Maximum number of local variables
+MAX_LOCALS=20
+
+pylint --reports=no --max-locals=$MAX_LOCALS --disable=$DISABLE_LIST $1 | grep -v 'using default configuration'
+pep8 --show-source $1
+pep257 $1
