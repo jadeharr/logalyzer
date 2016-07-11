@@ -129,7 +129,7 @@ class ReadLine(object):
                 break
         return found
 
-    def email(self):
+    def email(self, test = False):
         """Line that is relevant is found and email is sent.
 
         Reciever, sender and subject are defined, email_to and
@@ -161,13 +161,11 @@ class ReadLine(object):
 
         text = msg.as_string()
 
-        # Tells server to send email
         server = smtplib.SMTP('localhost')
         server.sendmail(email_from, [email_to], text)
         server.quit()
 
-        # makes sure an email is sent
-        #  print('boo')
+        # print('boo')
 
 
 class LogTail(object):
@@ -193,20 +191,33 @@ class LogTail(object):
         self.pos = self.f_handle.tell()
 
     def _reset(self):
-        """Make sure the code continuously resets.
+        """Make sure the code has variables to continuously reset.
 
         Open the file that needs to be read and read lines
         of code one at a time, make it equal to the position of the
-
+        last line.
         """
         self.f_handle.close()
         self.f_handle = open(self.log_file, "r")
         self.pos = self.f_handle.tell()
 
     def tail(self):
-        """Tail the the truncate file so that new data.
+        """Tail the the truncate file.
 
-        can keep being processed in the code.
+        Find the positon of the last line and read it.
+
+        If there is no line to read at the end of the code
+        the code will search for the size of the file.
+            1. If it is greater than the position the line it
+            is reading is on the fiel will update.
+            2. If the size of the file is smaller than the position
+            of th line it is reading the code will not run for a minute
+            then it startes to look for the position againa fer the
+            sleep time.
+
+        If the line at the end of the code can be read,
+        it will look for the key ignore strings and if they are not
+        present on the line an email will be sent.
         """
         print('Starting Tail')
         while 1:
@@ -226,7 +237,26 @@ class LogTail(object):
 
 
 def ip_addresses():
-    """Find the IP addresses of the divices that look at file."""
+    """Find the IP addresses of the divices that look at file.
+
+    TODO: Make code so that when any divice is looking for data
+        logalyzer can find ip address and email to device, if the
+        ip address is seen multiple times then anotheremail is not
+        sent to device.
+
+    Create list to store ip addresses in.
+
+    For all network interfaces if ip addresses are not found
+    the code continues. This is to make sure that the code doesn't
+    return an error message for ip addresses.
+
+    If an ip address is found then make sure that the address has
+    a key for netifaces.AF_INET, ip from the internet. If this is true
+    the ip address is appended to the list.
+
+    Returns:
+        ip_list: the list with the ip addresses
+    """
     ip_list = []
 
     # Interate over available interfaces
@@ -248,7 +278,31 @@ def ip_addresses():
 
 
 def main():
-    """run main function."""
+    """Run main function.
+
+    Create and object called parser to split aguments
+    into chunks from the commandline.
+
+    Command line args:
+        Make an argument for verbose in help with the key -v
+
+        Make anoher argument for config_file. The file used to
+        process configuration file. use key -f.
+
+    Parser object is used to process the command line arguments
+    that were just created.
+
+    If arguments are used then print that it is there.
+
+    If a file name is used that does not exist code explains
+    and exits out of the system.
+
+    Rename the args.config_filw using the config class ao that
+    the code is not as long and is a litle easier to read.
+
+    If the ip address that is found is in the data file then
+    tail the file from LogTail to start sending emails to ip address.
+    """
     # Create parser object
     parser = argparse.ArgumentParser()
 
