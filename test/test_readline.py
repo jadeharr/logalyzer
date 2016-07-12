@@ -11,34 +11,41 @@ class TesterReadLine(unittest.TestCase):
     good_config_file = '/home/jade/github/logalyzer/test/etc/good.yaml'
     # name the test of config in the logalyzer code: lines shorter.
     configuration = logalyzer.Config(good_config_file)
-    ReadLine = logalyzer.ReadLine(good_config_file)
 
     # Create test lines
-    line_valid = 'DOT11-4-CCMP_REPLAY blah blah blah'
-    line_invalid = 'INVALID-4-STRING blah blah blah'
+    line_ignore = 'DOT11-4-CCMP_REPLAY blah blah blah'
+    line_important = 'IMPORTANT-4-STRING blah blah blah'
+
+    email_to_valid = 'jadeh@simiya.com'
+    email_to_invalid = 'to@gmail.com'
+
+    email_from_valid = 'noreply@colovore.com'
+    email_from_invalid = 'from@gmail.com'
 
     # Create object for valid line
-    object_valid = ReadLine(line_valid, configuration)
-    object_invalid = ReadLine(line_invalid, configuration)
+    oject_overlook = logalyzer.ReadLine(line_ignore, configuration)
+    object_important = logalyzer.ReadLine(line_important, configuration)
 
-    # define header content for email
-    email_to = 'jadeh@simiya.com'
-    email_from = 'noreply@gmail.com'
+    to_valid = logalyzer.ReadLine(email_to_valid, configuration)
+    to_invalid = logalyzer.ReadLine(email_to_invalid, configuration)
+
+    from_valid = logalyzer.ReadLine(email_from_valid, configuration)
+    from_invalid = logalyzer.ReadLine(email_from_invalid, configuration)
 
     def test_overlook(self):
         """Test for the ignore values of the code
 
         Returns:
-            False: if a string in strings is found in a line
-            True: if a string in strings is not found in a line
+            False: if an ignore string is found in a line
+            True: if no ignore strings are found in a line
         """
         # Test with an object instantiated with a valid string
-        result = self.object_valid.overlook()
-        self.assertEqual(result, False)
+        result = self.oject_overlook.overlook()
+        self.assertEqual(result, True)
 
         # Test with an object instantiated with an invalid string
-        result = self.object_invalid.overlook()
-        self.assertEqual(result, True)
+        result = self.object_important.overlook()
+        self.assertEqual(result, False)
 
         # Create a list of valid lines to test
         strings = [
@@ -48,7 +55,18 @@ class TesterReadLine(unittest.TestCase):
             'SYS-5-CONFIG_I']
         for string in strings:
             # Create new object
-            new_object = self.ReadLine(self.configuration, string)
+            new_object = logalyzer.ReadLine(string, self.configuration)
+            result = new_object.overlook()
+            self.assertEqual(result, True)
+
+        strings = [
+            'DOT11-7-CCMP_REPLAY',
+            'SNMP-7-AUTHFAIL',
+            'PARSER-7-CFGLOG_LOGGEDCMD',
+            'SYS-7-CONFIG_I']
+        for string in strings:
+            # Create new object
+            new_object = logalyzer.ReadLine(string, self.configuration)
             result = new_object.overlook()
             self.assertEqual(result, False)
 
@@ -59,14 +77,22 @@ class TesterReadLine(unittest.TestCase):
             1. sender email address
             2. reciever email address
         """
-        # this test will always be true to test the contents of email
-        if test_email is True:
-            # test for the header contents to be true
-            result = self.email_to.email()
-            self.assertEqual(result, True)
+        # test for the header contents to be true
+        result = self.to_valid.email(test=True)
+        self.assertEqual(result, (
+            'jadeh@simiya.com', 'noreply@colovore.com'))
 
-            result = self.email_from.email()
-            self.assertEqual(result, True)
+        result = self.from_invalid.email(test=True)
+        self.assertEqual(result, (
+            'jadeh@simiya.com', 'noreply@colovore.com'))
+
+        result = self.from_valid.email(test=True)
+        self.assertEqual(result, (
+            'jadeh@simiya.com', 'noreply@colovore.com'))
+
+        result = self.from_invalid.email(test=True)
+        self.assertEqual(result, (
+            'jadeh@simiya.com', 'noreply@colovore.com'))
 
 if __name__ == '__main__':
     unittest.main()

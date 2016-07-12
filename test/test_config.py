@@ -25,12 +25,13 @@ class TesterConfig(unittest.TestCase):
 
     # Create temp directory
     file_handle = tempfile.NamedTemporaryFile(delete=False)
+    good_config_file = file_handle.name
+
     # Write config_text to file in directory
-    with open(file_handle.name, 'w+') as another_handle:
+    with open(good_config_file, 'w+') as another_handle:
         another_handle.write(config_text)
 
     # Use the name for the file as the file for instantiating configuration
-    good_config_file = file_handle
     # name config in the logalyzer code: saves space.
     configuration = logalyzer.Config(good_config_file)
 
