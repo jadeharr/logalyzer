@@ -9,7 +9,6 @@ import logalyzer
 class TesterConfig(unittest.TestCase):
     """Test the config class in logalyzer."""
     # rename the file that this unittest is in.
-    good_config_file = '/home/jade/github/logalyzer/test/etc/good.yaml'
 
     config_text = (
         """
@@ -25,13 +24,14 @@ class TesterConfig(unittest.TestCase):
         """)
 
     # Create temp directory
-    temp.name = tempfile.NamedTemporaryFile(delete=False)
+    file_handle = tempfile.NamedTemporaryFile(delete=False)
     # Write config_text to file in directory
-    temp.name.append(config_text)
-    # Use the name fo the file as the file for instatitating configuration
-    temp.name = good_config_file
+    with open(file_handle.name, 'w+') as another_handle:
+        another_handle.write(config_text)
 
-    # name the test of config in the logalyzer code: lines shorter.
+    # Use the name for the file as the file for instantiating configuration
+    good_config_file = file_handle
+    # name config in the logalyzer code: saves space.
     configuration = logalyzer.Config(good_config_file)
 
     def test_email_to(self):

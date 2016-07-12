@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test for logtail in logalyzer."""
+"""Test for ip_addressess in logalyzer."""
 
 import unittest
 import logalyzer

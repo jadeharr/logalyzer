@@ -11,6 +11,7 @@ class TesterReadLine(unittest.TestCase):
     good_config_file = '/home/jade/github/logalyzer/test/etc/good.yaml'
     # name the test of config in the logalyzer code: lines shorter.
     configuration = logalyzer.Config(good_config_file)
+    ReadLine = logalyzer.ReadLine(good_config_file)
 
     # Create test lines
     line_valid = 'DOT11-4-CCMP_REPLAY blah blah blah'
@@ -20,11 +21,16 @@ class TesterReadLine(unittest.TestCase):
     object_valid = ReadLine(line_valid, configuration)
     object_invalid = ReadLine(line_invalid, configuration)
 
+    # define header content for email
+    email_to = 'jadeh@simiya.com'
+    email_from = 'noreply@gmail.com'
+
     def test_overlook(self):
         """Test for the ignore values of the code
 
         Returns:
-            False
+            False: if a string in strings is found in a line
+            True: if a string in strings is not found in a line
         """
         # Test with an object instantiated with a valid string
         result = self.object_valid.overlook()
@@ -42,7 +48,7 @@ class TesterReadLine(unittest.TestCase):
             'SYS-5-CONFIG_I']
         for string in strings:
             # Create new object
-            new_object = ReadLine(self.configuration, string)
+            new_object = self.ReadLine(self.configuration, string)
             result = new_object.overlook()
             self.assertEqual(result, False)
 
@@ -54,11 +60,7 @@ class TesterReadLine(unittest.TestCase):
             2. reciever email address
         """
         # this test will always be true to test the contents of email
-        if test_email() is True:
-            # define header contents
-            email_to = 'jadeh@simiya.com'
-            email_from = 'noreply@gmail.com'
-
+        if test_email is True:
             # test for the header contents to be true
             result = self.email_to.email()
             self.assertEqual(result, True)
