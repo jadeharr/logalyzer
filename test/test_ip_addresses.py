@@ -6,7 +6,10 @@ import logalyzer
 
 
 class TesterLogTail(unittest.TestCase):
-    """Test if logtail is efficient."""
+    """Test if logtail is efficient.
+
+    TODO: When code for seeing which ip address is being used to
+        retrieve info is finished; update."""
     # rename the file that this unittest is in.
     good_config_file = '/home/jade/github/logalyzer/test/etc/good.yaml'
     # name the test of config in the logalyzer code: lines shorter.

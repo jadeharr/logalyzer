@@ -10,6 +10,7 @@ import sys
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import datetime
 import time
 from stat import ST_SIZE
 import netifaces
@@ -28,12 +29,12 @@ class Config(object):
         Returns:
             A dictionary mapping data to the
         """
-        with open(file_name) as f_handle:
+        with open(file_name, "r") as f_handle:
             self.data = yaml.safe_load(f_handle)
         # pprint(self.data)
 
     def email_to(self):
-        """Have a to email to send emails to once an update is found.
+        """Obtain reciever email.
 
         Retrieves the email_to string that is in self.data.
 
@@ -41,12 +42,12 @@ class Config(object):
             A str corresponding with email_to
 
             Example:
-            to@gmail.com
+                to@gmail.com
         """
         return self.data['email_to']
 
     def email_from(self):
-        """Need to know who/where the email is coming from.
+        """Obtain sender email.
 
         Retrieves the email_from string that is in self.data.
 
@@ -54,7 +55,7 @@ class Config(object):
             A str corresponding with email_from
 
             Example:
-            noreply@gmail.com
+                from@gmail.com
         """
         return self.data['email_from']
 
@@ -81,15 +82,14 @@ class Config(object):
 
         Returns:
             the name of file from file_name in self.data.
-
         """
         return self.data['file_name']
 
     def ip_addr(self):
         """Ip address method to record ip addresses.
 
-        TODO: Add more code so that emails are only sent
-            to one ip address once
+        TODO: emails are only sent to one ip address once
+            sees that the same ip address
 
         Retrieves an ip address from the self.data file, used to see
         if that ip address is present from device.
@@ -106,73 +106,69 @@ class ReadLine(object):
     def __init__(self, line, config):
         """Define line and config.
 
-        they are used to see each line of code individually
-        and config is used to put files together.
-
-        Returns:
-
+        Arguments:
+            line: line of code
+            config: data from data file
         """
         self.line = line
-        self.log_file = config
+        self.config = config
 
     def overlook(self):
-        """if a string of self.ignore is seen, it is disregarded.
+        """If a string from self.ignore is seen, the line is disregarded.
 
         Returns:
-            1. the keywords are not seen then it code continues, returns False
-            2. keywords are seen then code breaks and an email is not sent out
+            1. keywords are not seen; returns False
+            2. keywords are seen; returns True
         """
         found = False
-        for value in self.log_file.ignore():
+        # if the values in ignore are found; found = True
+        for value in self.config.ignore():
             if value in self.line:
                 found = True
                 break
         return found
 
-    def email(self, test = False):
+    def email(self, test=False):
         """Line that is relevant is found and email is sent.
 
-        Reciever, sender and subject are defined, email_to and
-        email_from are recieved from the self.data file.
-
-        MIMEMultipart is used to send text in the email
-        and is equal to msg to make the code shorter
-
-        MimeText is used to help create the body of the message.
-
-        Sender, recipiant, subject and body are coded as strings.
-
-        Server is used to define SMTP (simple mail transfer protocal)
-        using the localhost server, string can be changed to another server
+        Arguments:
+            test=False: this is a variable for testing from unittests
 
         Returns:
             email is sent off of the data that is relevant
             through the server with the text, reciever and sender info
         """
-        email_to = self.log_file.email_to()
-        email_from = self.log_file.email_from()
+        # define values for sender, reciever, date and message
+        email_to = self.config.email_to()
+        email_from = self.config.email_from()
+        # date is formated as weekday, month, day, year
+        date = datetime.datetime.now()
+        date.strftime('%b %d %Y')
         msg = MIMEMultipart()
+        # header of the email
         msg['From'] = email_from
         msg['To'] = email_to
-        msg['Subject'] = "Fluctuations In The Data"
+        msg['Subject'] = ('Log Activity Alert: %s') % (date)
+        subject = msg['Subject']
 
-        body = "Line"
+        # Create the body of the email and attach to message
+        body = self.line
         msg.attach(MIMEText(body, 'plain'))
-
         text = msg.as_string()
 
-        server = smtplib.SMTP('localhost')
-        server.sendmail(email_from, [email_to], text)
-        server.quit()
-
+        # If not unittesting, send email normally
+        if test is False:
+            server = smtplib.SMTP('localhost')
+            server.sendmail(email_from, [email_to], text)
+            server.quit()
+        else:
+            # Return tuple of data otherwise
+            return (email_to, email_from)
         # print('boo')
 
 
 class LogTail(object):
-    """Make sure the code is continuously taking data.
-
-    and sending update emails.
-    """
+    """Code is continuously taking data and sending update emails."""
 
     def __init__(self, config):
         """Define the variables and find the length of file.
@@ -186,53 +182,48 @@ class LogTail(object):
         self.config = config
         self.log_file = abspath(config.file_name())
         self.f_handle = open(self.log_file, "r")
+        # Find length of the file
         file_len = stat(self.log_file)[ST_SIZE]
+        # find the last line of code (current position)
         self.f_handle.seek(file_len)
         self.pos = self.f_handle.tell()
 
     def _reset(self):
-        """Make sure the code has variables to continuously reset.
-
-        Open the file that needs to be read and read lines
-        of code one at a time, make it equal to the position of the
-        last line.
-        """
+        """Code has variables to be able to continuously reset."""
         self.f_handle.close()
+        # open data file
         self.f_handle = open(self.log_file, "r")
+        # creat object for position of last line
         self.pos = self.f_handle.tell()
 
     def tail(self):
-        """Tail the the truncate file.
+        """Tail the file with truncate.
 
-        Find the positon of the last line and read it.
-
-        If there is no line to read at the end of the code
-        the code will search for the size of the file.
-            1. If it is greater than the position the line it
-            is reading is on the fiel will update.
-            2. If the size of the file is smaller than the position
-            of th line it is reading the code will not run for a minute
-            then it startes to look for the position againa fer the
-            sleep time.
-
-        If the line at the end of the code can be read,
-        it will look for the key ignore strings and if they are not
-        present on the line an email will be sent.
+        Returns:
+            sent email
         """
         print('Starting Tail')
         while 1:
+            # find the last line of code in the data file.
             self.pos = self.f_handle.tell()
             line = self.f_handle.readline()
+
             if not line:
+                # if size of file is less than the position reset code
                 if stat(self.log_file)[ST_SIZE] < self.pos:
                     self._reset()
+
+                # if file is greater than position, rest for one minute
+                # then find the position of the last line again.
                 else:
                     time.sleep(1)
                     self.f_handle.seek(self.pos)
+            # if there is a line then read it
             else:
                 query = ReadLine(line, self.config)
+                # if ignore keywords are not in line then continue
                 if query.overlook() is False:
-                    # query.email()
+                    # if line does not have ignore keywords; query.email()
                     print('Hooray')
 
 
@@ -244,19 +235,10 @@ def ip_addresses():
         ip address is seen multiple times then anotheremail is not
         sent to device.
 
-    Create list to store ip addresses in.
-
-    For all network interfaces if ip addresses are not found
-    the code continues. This is to make sure that the code doesn't
-    return an error message for ip addresses.
-
-    If an ip address is found then make sure that the address has
-    a key for netifaces.AF_INET, ip from the internet. If this is true
-    the ip address is appended to the list.
-
     Returns:
         ip_list: the list with the ip addresses
     """
+    # list for ip addresses
     ip_list = []
 
     # Interate over available interfaces
@@ -280,28 +262,10 @@ def ip_addresses():
 def main():
     """Run main function.
 
-    Create and object called parser to split aguments
-    into chunks from the commandline.
-
-    Command line args:
-        Make an argument for verbose in help with the key -v
-
-        Make anoher argument for config_file. The file used to
-        process configuration file. use key -f.
-
-    Parser object is used to process the command line arguments
-    that were just created.
-
-    If arguments are used then print that it is there.
-
-    If a file name is used that does not exist code explains
-    and exits out of the system.
-
-    Rename the args.config_filw using the config class ao that
-    the code is not as long and is a litle easier to read.
-
-    If the ip address that is found is in the data file then
-    tail the file from LogTail to start sending emails to ip address.
+    Returns:
+        1.confirmation of verbose turning on
+        2.if file name entered is not correct new file name is promted for
+        3.tailed data file
     """
     # Create parser object
     parser = argparse.ArgumentParser()

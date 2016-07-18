@@ -36,7 +36,7 @@ class TesterConfig(unittest.TestCase):
     configuration = logalyzer.Config(good_config_file)
 
     def test_email_to(self):
-        """Test for correct email for reciever.
+        """Test for email to.
 
         Retruns:
             reciever email
@@ -47,7 +47,7 @@ class TesterConfig(unittest.TestCase):
         self.assertIsInstance(result, str)
 
     def test_email_from(self):
-        """Test for correct email for sender.
+        """Test for email from.
 
         Returns:
             sender email
@@ -61,7 +61,7 @@ class TesterConfig(unittest.TestCase):
         """Test for the right ignore lines.
 
         Returns:
-            if a line with a string in strings is found returns True
+            True
         """
         result = self.configuration.ignore()
         # list of ignore phrases in the code to test
@@ -76,10 +76,10 @@ class TesterConfig(unittest.TestCase):
         self.assertNotEqual(result, 'LINK-3-DOWN')
 
     def test_file_name(self):
-        """Make sure file used is the right data file.
+        """Test for file name.
 
         Returns:
-            File which data is retrieved from
+            File name
         """
         result = self.configuration.file_name()
         self.assertEqual(result, '/home/jade/github/data/data.logfile')
@@ -87,10 +87,10 @@ class TesterConfig(unittest.TestCase):
         self.assertIsInstance(result, str)
 
     def test_ip_addr(self):
-        """Make sure ip addresses are found.
+        """Test for ip addresses.
 
         Results:
-            ip address that is a string
+            ip address
         """
         result = self.configuration.ip_addr()
         self.assertEqual(result, '127.0.0.1')

@@ -16,6 +16,7 @@ class TesterReadLine(unittest.TestCase):
     line_ignore = 'DOT11-4-CCMP_REPLAY blah blah blah'
     line_important = 'IMPORTANT-4-STRING blah blah blah'
 
+    # Create test lines for valid and invalid email addresses
     email_to_valid = 'jadeh@simiya.com'
     email_to_invalid = 'to@gmail.com'
 
@@ -26,6 +27,7 @@ class TesterReadLine(unittest.TestCase):
     oject_overlook = logalyzer.ReadLine(line_ignore, configuration)
     object_important = logalyzer.ReadLine(line_important, configuration)
 
+    # Create objects for the valid and invalid emails
     to_valid = logalyzer.ReadLine(email_to_valid, configuration)
     to_invalid = logalyzer.ReadLine(email_to_invalid, configuration)
 
@@ -59,6 +61,7 @@ class TesterReadLine(unittest.TestCase):
             result = new_object.overlook()
             self.assertEqual(result, True)
 
+        # Create a list of invalid lines to test
         strings = [
             'DOT11-7-CCMP_REPLAY',
             'SNMP-7-AUTHFAIL',
@@ -72,6 +75,9 @@ class TesterReadLine(unittest.TestCase):
 
     def test_email(self):
         """Test for the header contens in the email
+
+        TODO: test for the other header contents besides the emails,
+            make the code less of a cheating code.
 
         Returns:
             1. sender email address
